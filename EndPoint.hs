@@ -26,6 +26,6 @@ main :: IO ()
 main = do
   resp <- simpleHttp (B.unpack (buildURI test))
   -- putStrLn (L.unpack resp)
-  let d = decode (L.tail . L.init $ resp) :: [Maybe NominatimResponse]
+  let d = decode resp :: Maybe [NominatimResponse]
   putStrLn (show d) 
 
