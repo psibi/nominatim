@@ -6,7 +6,7 @@ import Data.Aeson
 import Data.Aeson.Types
 import Control.Applicative ((<$>), (<*>), empty)
 import qualified Data.ByteString.Char8 as BS
-
+import Control.Monad
 
 data NominatimRequest = NominatimRequest {
   reqEmail :: Maybe String,
@@ -19,8 +19,13 @@ data NominatimResponse = NominatimResponse {
   } deriving (Show)
   
 instance FromJSON NominatimResponse where
-  parseJSON (Object v) = NominatimResponse <$>
-                         v .: "lat" <*>
-                         v .: "lon"
+  parseJSON (Object v) = let lat = v .: "lat"
+                             lon = v .: "lon"
+                         in  NominatimResponse <$>
+                             (liftM toDouble lat) <*>
+                             (liftM toDouble lon)
+                         
   parseJSON _ = empty
 
+toDouble :: String -> Double
+toDouble = read
