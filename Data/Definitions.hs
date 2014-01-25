@@ -7,6 +7,7 @@ import Data.Aeson.Types
 import Control.Applicative ((<$>), (<*>), empty)
 import qualified Data.ByteString.Char8 as BS
 import Control.Monad
+import qualified Control.Exception as E
 
 data NominatimRequest = NominatimRequest {
   reqEmail :: Maybe String,
@@ -29,3 +30,7 @@ instance FromJSON NominatimResponse where
 
 toDouble :: String -> Double
 toDouble = read
+
+data Error = HttpConnectionError E.SomeException
+           | JSONError
+           deriving (Show)
