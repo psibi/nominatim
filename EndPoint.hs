@@ -13,7 +13,7 @@ import Network.HTTP.Types (Method, Status(..))
 import qualified Control.Exception as E
 import Data.Maybe (fromMaybe)
 
-nominatimEndPoint = BS.pack "http://nominatim.openstreetmap.org/search"
+nominatimEndPoint = BS.pack "http://open.mapquestapi.com/nominatim/" --"http://nominatim.openstreetmap.org/search"
 
 toBS :: [(String, Maybe String)] -> [(BS.ByteString, Maybe BS.ByteString)]
 toBS = map (\(a,b) -> (BS.pack a, b >>= return . BS.pack))
@@ -25,14 +25,14 @@ buildURI NominatimRequest { reqEmail = email, reqQ = q} =
                 ("email", email)]
   in BS.append nominatimEndPoint (renderQuery True (toBS params))
 
-test = NominatimRequest Nothing "Adyar, Chennai"
+test = NominatimRequest Nothing "Xomdfadkfx, Chennai"
 
 main :: IO ()
 main = do
   -- resp <- simpleHttp (BS.unpack (buildURI test))
   -- -- putStrLn (L.unpack resp)
   -- let d = eitherDecode resp :: Either String [NominatimResponse]
-  d <- latLon test (Just $ Proxy "127.0.0.1" 3129)
+  d <- latLon test Nothing -- (Just $ Proxy "127.0.0.1" 3129)
   putStrLn (show d)
 
 
@@ -42,8 +42,6 @@ latLon req proxy =
                (BS.unpack (buildURI req))
                (Just (RequestBodyBS (BS.pack "")))
                (proxy)
-
-             
 
 nominatimAPI :: (FromJSON b, Show b) => BS.ByteString
                 -> String
