@@ -1,7 +1,5 @@
 {-# LANGUAGE OverloadedStrings, StandaloneDeriving, DeriveDataTypeable #-}
 {-# LANGUAGE CPP #-}
-
-
 module EndPoint where
 
 import Data.Aeson
@@ -34,20 +32,26 @@ main = do
   -- resp <- simpleHttp (BS.unpack (buildURI test))
   -- -- putStrLn (L.unpack resp)
   -- let d = eitherDecode resp :: Either String [NominatimResponse]
-  d <- latLon test 
+  d <- latLon test (Just $ Proxy "127.0.0.1" 3129)
   putStrLn (show d)
 
 
-latLon :: NominatimRequest -> IO (Either String [NominatimResponse])
-latLon req =
+latLon :: NominatimRequest -> Maybe Proxy -> IO (Either String [NominatimResponse])
+latLon req proxy =
   nominatimAPI (BS.pack "GET")
                (BS.unpack (buildURI req))
                (Just (RequestBodyBS (BS.pack "")))
+               (proxy)
+
              
 
-nominatimAPI :: (FromJSON b, Show b) => BS.ByteString -> String -> Maybe RequestBody -> IO (Either String b)
-nominatimAPI apiMethod url body = do
-  result <- doHttp apiMethod url body
+nominatimAPI :: (FromJSON b, Show b) => BS.ByteString
+                -> String
+                -> Maybe RequestBody
+                -> Maybe Proxy
+                -> IO (Either String b)
+nominatimAPI apiMethod url body hproxy = do
+  result <- doHttp apiMethod url body hproxy
   case result of
     Left e -> return (Left ("HttpConnectionError"))
     Right resp -> return $ eitherDecode (responseBody resp)
@@ -55,12 +59,13 @@ nominatimAPI apiMethod url body = do
     --   Left e -> return (Left JSONError)
     --   Right ans -> return (Right ans)
 
-doHttp reqMethod url body = do
+doHttp reqMethod url body hproxy = do
   let reqBody = fromMaybe (RequestBodyBS $ BS.pack "") body
       Just uri = parseUrl url
       request = uri { method = reqMethod
                     , requestBody = reqBody
                     , checkStatus = successOrMissing
+                    , proxy = hproxy
                     }
  
   (getResponse request >>= return . Right) `E.catches` [
