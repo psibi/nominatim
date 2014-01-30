@@ -8,6 +8,7 @@ import Control.Applicative ((<$>), (<*>), empty)
 import qualified Data.ByteString.Char8 as BS
 import Control.Monad
 import qualified Control.Exception as E
+import Numeric
 
 data NominatimRequest = NominatimRequest {
   reqEmail :: Maybe String,
@@ -29,7 +30,7 @@ instance FromJSON NominatimResponse where
   parseJSON _ = empty
 
 toDouble :: String -> Double
-toDouble = read
+toDouble str = fst . head . readFloat $ str
 
 data Error = HttpConnectionError E.SomeException
            | JSONError
